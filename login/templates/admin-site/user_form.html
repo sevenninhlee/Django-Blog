@@ -1,0 +1,98 @@
+{% load staticfiles %}
+{% include 'layout/header.html' %}
+      <div class="container theme-showcase" role="main">
+         <div class="row row-offcanvas row-offcanvas-right">
+            <div class="col-xs-12 col-sm-9" id='messsage'>
+               <form action="javascript:void(0)" class="form-horizontal" method="post" enctype="multipart/form-data" id="userAddForm">
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">First Name</label>
+                     <div class="col-sm-10">
+                        <input name="first_name" type="text" class="form-control" id="first_name" placeholder="First Name" required>
+                     </div>
+                  </div>
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Last Name</label>
+                     <div class="col-sm-10">
+                        <input name="last_name" type="text" class="form-control" id="last_name" placeholder="Last Name" required>
+                     </div>
+                  </div> 
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Email </label>
+                     <div class="col-sm-10">
+                        <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                     </div>
+                  </div>                                   
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Phone</label>
+                     <div class="col-sm-10">
+                        <input name="phone" type="text" class="form-control" id="phone" placeholder="Phone" required>
+                     </div>
+                  </div>                  
+                  <div class="form-group">
+                     <label for="phone" class="col-sm-2 control-label">Username</label>
+                     <div class="col-sm-10">
+                        <input name="username" type="text" class="form-control" id="username" placeholder="Username" required>
+                     </div>
+                  </div>
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label" for="exampleFormControlSelect1">Role</label>
+                    <div class="col-sm-10">
+                      <select class="form-control" id="exampleFormControlSelect1" name="role">
+                        <option value="1">Admin</option>
+                        <option value="2">Leader</option>
+                        <option value="3">User</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                     <label for="class" class="col-sm-2 control-label">Password</label>
+                     <div class="col-sm-10">
+                        <input name="password" type="password" class="form-control" id="passwordInput" placeholder="Password" required>
+                     </div>
+                  </div>  
+                  <div class="form-group">
+                     <label for="class" class="col-sm-2 control-label">Comfirm Password</label>
+                     <div class="col-sm-10">
+                        <input  type="password" class="form-control" id="passwordConfirmInput" placeholder="Comfirm Password" required>
+                     </div>
+                  </div>                                   
+                  <div class="form-group">
+                     <div class="col-sm-offset-2 col-sm-10">
+                        <button name="btn_submit" type="submit" class="btn btn-default" id="addUser" >Add</button>
+                     </div>
+                  </div>
+               </form>
+            </div>
+            {% include 'layout/right_bar.html' %}
+         </div>
+         <hr>
+         {% include 'layout/footer.html' %}
+      </div>
+   </body>
+</html>
+<script>
+  $("#userAddForm").on("click","#addUser", function(){
+    var flag = false;
+    var password = document.getElementById("passwordInput")
+    , confirm_password = document.getElementById("passwordConfirmInput");
+
+    if(password.value != confirm_password.value) {
+      confirm_password.setCustomValidity("Mật khẩu không trùng khớp !");
+    } else {
+      confirm_password.setCustomValidity('Trung khop'); 
+      flag = true;
+    }
+    if(flag==true){
+      var dataForm = $("#userAddForm").serializeArray();
+      var formData = JSON.parse(JSON.stringify(dataForm));      
+      $.ajax({
+        type: 'POST',
+        url : "{%url 'user-list'%}",
+        data: formData,
+        success: function (data) {
+          window.location.replace('{%url "user-page"%}');
+        }
+      });
+    }
+  });
+</script>

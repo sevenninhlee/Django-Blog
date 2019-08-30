@@ -1,0 +1,101 @@
+{% load staticfiles %}
+{% include 'layout/header.html' %}
+      <div class="container theme-showcase" role="main">
+         <div class="row row-offcanvas row-offcanvas-right">
+            <div class="col-xs-12 col-sm-9" id='messsage'>
+               <form action="javascript:void(0)" class="form-horizontal" method="post" enctype="multipart/form-data" id="userAddForm">
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">First Name</label>
+                     <div class="col-sm-10">
+                        <input name="first_name" type="text" class="form-control" id="first_name" placeholder="First Name" required>
+                     </div>
+                  </div>
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Last Name</label>
+                     <div class="col-sm-10">
+                        <input name="last_name" type="text" class="form-control" id="last_name" placeholder="Last Name" required>
+                     </div>
+                  </div> 
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Email </label>
+                     <div class="col-sm-10">
+                        <input name="email" type="email" class="form-control" id="email" placeholder="Email" required>
+                     </div>
+                  </div>                                   
+                  <div class="form-group">
+                     <label for="fullname" class="col-sm-2 control-label">Phone</label>
+                     <div class="col-sm-10">
+                        <input name="phone" type="text" class="form-control" id="phone" placeholder="Phone" required>
+                     </div>
+                  </div>                  
+                  <div class="form-group">
+                     <label for="phone" class="col-sm-2 control-label">Username</label>
+                     <div class="col-sm-10">
+                        <input name="username" type="text" class="form-control" id="username" placeholder="Username" required>
+                     </div>
+                  </div>
+                  <input type="hidden" name="password" id="password">
+                  <div class="form-group">
+                    <label class="col-sm-2 control-label" for="exampleFormControlSelect1">Role</label>
+                    <div class="col-sm-10">
+                      <select class="form-control" id="role_idEdit" name="role">
+                        <option value="1">Admin</option>
+                        <option value="2">Leader</option>
+                        <option value="3">User</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-group">
+                     <div class="col-sm-offset-2 col-sm-10">
+                        <button onclick="editUser()" name="btn_submit" type="submit" class="btn btn-default">Edit</button>
+                     </div>
+                  </div>
+               </form>
+            </div>
+            {% include 'layout/right_bar.html' %}
+         </div>
+         <hr>
+        {% include 'layout/footer.html' %}
+      </div>
+   </body>
+</html>
+<script>
+  var pass_old = "";
+  var pathname = window.location.pathname
+  console.log(pathname);
+  pathname = pathname.split("/");
+  var id = pathname[3];
+  $.ajax({
+    type: 'GET',
+    url : "{% url 'user-list' %}"+id,
+    success: function (data) {
+      $('#id').val(data.id);
+      $('#first_name').val(data.first_name);
+      $('#password').val(data.password);
+      $('#last_name').val(data.last_name);
+      $('#email').val(data.email);
+      $('#phone').val(data.phone);
+      var role_id = data.role;
+      $("#role_idEdit option").each(function(){
+          $(this).removeAttr( "selected" )
+            if($(this).val()==role_id){
+               $(this).attr("selected", "selected");
+            }
+        });
+      $('#username').val(data.username);
+    }
+  });
+  function editUser(){
+    var dataForm = $("#userAddForm").serializeArray();
+    var formData = JSON.parse(JSON.stringify(dataForm));
+    $.ajax({
+        type: 'PATCH',
+        data: formData,
+        dataType: 'json',           
+        url : "{% url 'user-list' %}"+id,
+        success: function (data) {
+          alert('Done !');
+        }
+    });
+  }
+</script>

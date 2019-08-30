@@ -1,0 +1,76 @@
+{% load new_filter %}
+{% include 'layout/header.html' %}
+      <div class="container theme-showcase" role="main">
+         <div class="row row-offcanvas row-offcanvas-right">
+            <div class="col-xs-12 col-sm-9">
+               <div class="table-responsive">
+                  <table class="table table-bordered">
+                     <thead>
+                        <tr>
+                           <th>#</th>
+                           <th>Full Name</th>
+                           <th>Email</th>
+                           <th>Username</th>
+                           <th>Phone</th>
+                           <th>Role</th>
+                           <th>Actions</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        {%for user in list_user%}
+                        <tr id="title-row-{{user.id}}">
+                           <th width="5%" scope="row">{{user.id}}</th>
+                           <td width="12%">{{user.first_name}} {{user.last_name}}</td>
+                           <td width="30%">{{user.email}}</td>
+                           <td width="12%">{{user.username}}</td>
+                           <td width="11%">{{user.phone}}</td>
+
+                           <td width="15%">{{ user.role|showRole }}</td>
+                           <td width="15%">
+                              <a href="detail/{{user.id}}" class="table-link">
+                              <span class="fa-stack">
+                              <i class="fa fa-square fa-stack-2x"></i>
+                              <i class="fa fa-search-plus fa-stack-1x fa-inverse"></i>
+                              </span>
+                              </a>
+                              <a href="edit/{{user.id}}" class="table-link">
+                              <span class="fa-stack">
+                              <i class="fa fa-square fa-stack-2x"></i>
+                              <i class="fa fa-pencil fa-stack-1x fa-inverse"></i>
+                              </span>
+                              </a>
+                              <a href="javascript:void(0)" onClick='deleteUser({{user.id}})' class="table-link danger delete">
+                              <span class="fa-stack">
+                              <i class="fa fa-square fa-stack-2x"></i>
+                              <i class="fa fa-trash-o fa-stack-1x fa-inverse"></i>
+                              </span>
+                              </a>
+                           </td>
+                           {%endfor%}
+                        </tr>
+                     </tbody>
+                  </table>
+               </div>
+            </div>
+         {% include 'layout/right_bar.html' %}
+         </div>
+         <hr>
+      {% include 'layout/footer.html' %}
+      </div>
+      <script>
+         function deleteUser(id){
+            idDel= confirm("Are you want to delete");
+            if(idDel){
+               $.ajax({
+                 type: 'DELETE',
+                 url : "{%url 'user-list'%}"+id,
+                 success: function (data) {
+                  $("#title-row-"+id).html('');
+                 }
+               });                
+            }
+         }
+
+      </script>
+   </body>
+</html>

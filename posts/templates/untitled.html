@@ -1,0 +1,827 @@
+{% load staticfiles %}
+{% include 'layout2/header.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+      {% include 'layout2/right-bar.html' %}
+        <!-- /.col-lg-3 -->
+        <div class="col-lg-9">
+          <div class="card mt-4" id="post-detail">
+            <!-- <img class="card-img-top img-fluid" src="http://placehold.it/900x400" alt=""> -->
+            <div class="card-body">
+              <h3 class="card-title">{{object.name}}</h3>
+              <h4>{{object.preview_text}}</h4>
+              <p class="card-text">{{object.detail_text}}</p>
+              <a href="" onclick="likePost(event,{{object.id}})" id="like_post" class="text-primary fa fa-thumbs-o-up"></a>
+            </div>
+          </div>
+          <div class="card card-outline-secondary my-4" id="list_post">
+            <div class="card-header">
+              Comment
+            </div>
+
+
+            <div class="card-body show-post-cat list_comment">
+            </div>
+
+
+            <div class="col-md-12" id="comment-detail">
+              <form action="javascript:void(0)" id="commentParentAddForm">
+                <input type="hidden" name="new" value="{{object.id}}">
+                <div class="form-group">
+                   <label for="forContent">Content (*):</label>
+                   <textarea placeholder="Enter content" class="form-control" id="forContent" name="content"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" value="Submit">
+              </form>
+            </div>  
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.container -->   
+    <script>
+      $( "body" ).on( "click", "#reply", function() {
+        var id = $(this).attr("alt");
+        $("#form_comment_child-"+id).slideToggle("slow");
+      });
+
+      var userInfo = localStorage.getItem("user");
+      userInfo = JSON.parse(userInfo);
+      var fullname = userInfo.first_name + " " + userInfo.last_name;
+
+      $( document ).ready(function() {
+        var pathname = window.location.pathname
+        console.log(pathname);
+        pathname = pathname.split("/");
+        var id = pathname[3];
+
+        $.ajax({
+          type: 'GET',
+          url : "{% url 'post-list-comment' %}?new_id="+id,
+          success: function (data) {
+            $('.list_comment').html("");
+            var html;
+            $.each(data, function(index,value){
+              html = htmlForm(value.id, value.fullname, value.content);
+              $(".list_comment").append(html);
+            });
+          }
+        }); 
+      });       
+       
+      function likePost(e,id){
+        e.preventDefault();
+        if(userInfo){
+          $.ajax({
+            type: 'POST',
+            url : "{%url 'post-like'%}",
+            dataType: 'json',
+            headers: {
+              "authorization": 'Token ' + localStorage.getItem("token")
+            },           
+            data : {
+              id_post : id,
+            },
+            success: function (data) {
+              $('#like_post').html(data.number_of_like);
+            },
+            error: function () {
+              
+            },
+          }); 
+        }else{
+          alert("Vui long dang nhap de thuc hien chuc nang nay");
+        }
+      };
+        
+      $("#commentParentAddForm").on('submit', function(event) {
+        event.preventDefault();
+        var dataForm = $("#commentParentAddForm").serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html = htmlForm(data.id, data.fullname, data.content);
+            $(".list_comment").append(html);
+          $("#commentParentAddForm").trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      }); 
+
+      $("#commentChildrenAddForm").on('submit', function(event) {
+        event.preventDefault();
+        var dataForm = $("#commentChildrenAddForm").serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        console.log(dataForm)
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html = ``;
+            $(".list_comment_children").append(html);
+          $("#commentChildrenAddForm").trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      });      
+
+      function htmlForm(a,b,c){
+        var str=`
+                <div class="row">
+                  <div id="cmt-${a}" class="col-md-12" style="margin-bottom: 20px;padding-right: 40px">
+                      <p>
+                      <h3 class="float-left" ><strong>${b}</strong></h3>
+                      </p>
+                      <div class="clearfix"></div>
+                      <p>
+                       ${c}
+                      </p>
+                      <p>
+                        <a id="reply" alt="${a}" class="float-right btn btn-outline-primary ml-2">
+                        <i class="fa fa-reply"></i> Reply</a>
+                      </p>
+                  </div>
+                </div>
+                <div class="card card-inner" style="margin-left: 4rem;display:none;" id="form_comment_child-${a}">
+                   <div class="card-body">
+                      <div class="row">
+                          <div class="col-md-12" style="">
+                            <hr>
+                            <form action="javascript:void(0)" id="commentChildrenAddForm">
+                               <input type="hidden" name="new" value="${a}">
+                               <div class="form-group">
+                                  <label >Content (*): </label>
+                                  <textarea class="form-control" name="content"></textarea>
+                               </div>
+                               <input type="submit" class="btn btn-success" value="Submit">
+                            </form>
+                         </div> 
+                      </div>
+                   </div>
+                </div>
+              </div>
+              `;   
+        return str;     
+      }  
+
+    </script>
+{% include 'layout2/footer.html' %}
+
+
+
+{% load staticfiles %}
+{% include 'layout2/header.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+      {% include 'layout2/right-bar.html' %}
+        <!-- /.col-lg-3 -->
+        <div class="col-lg-9">
+          <div class="card mt-4" id="post-detail">
+            <!-- <img class="card-img-top img-fluid" src="http://placehold.it/900x400" alt=""> -->
+            <div class="card-body">
+              <h3 class="card-title">{{object.name}}</h3>
+              <h4>{{object.preview_text}}</h4>
+              <p class="card-text">{{object.detail_text}}</p>
+              <a href="" onclick="likePost(event,{{object.id}})" id="like_post" class="text-primary fa fa-thumbs-o-up"></a>
+            </div>
+          </div>
+          <div class="card card-outline-secondary my-4" id="list_post">
+            <div class="card-header">
+              Comment
+            </div>
+            <div class="card-body show-post-cat list_comment">
+              <div class="row">
+                 <div class="col-md-12" style="margin-bottom: 20px;padding-right: 40px">
+                    <p>
+                    <h3 class="float-left" ><strong>Maniruzzaman Akash</strong></h3>
+                    </p>
+                    <div class="clearfix"></div>
+                    <p>Lorem Ipsum is simply dummy text of the pr make  but also the leap into electronic typesetting, remaining essentially unchanged. It was 
+                    </p>
+                    <p>
+                      <a class="float-right btn btn-outline-primary ml-2"> <i class="fa fa-reply"></i> Reply</a>
+                    </p>
+                 </div>
+              </div>
+              <div class="card card-inner" style="margin-left: 4rem; display: none;">
+                 <div class="card-body">
+                    <div class="row">
+                       <div class="col-md-12">
+                          <p><a href="https://maniruzzaman-akash.blogspot.com/p/contact.html"><strong>Maniruzzaman Akash</strong></a></p>
+                          <p>Lorem Ipsum is simply dummy text of the pr make  but also the leap into electronic typesetting</p>
+                          <p>
+                            <a class="float-right btn btn-outline-primary ml-2">  <i class="fa fa-reply"></i> Reply</a>
+                          </p>
+                       </div>
+<!--                        <div class="col-md-12" style="display:none">
+                          <hr>
+                          <form action="javascript:void(0)">
+                             <input type="hidden" name="new" value="{{object.id}}">
+                             <div class="form-group">
+                                <label for="fullname">Full name (*): </label>
+                                <input type="text" class="form-control" id="fullname" placeholder="Fulll name" name="fullname">
+                             </div>
+                             <div class="form-group">
+                                <label >Content (*): </label>
+                                <textarea class="form-control" name="content"></textarea>
+                             </div>
+                             <input type="submit" class="btn btn-success" value="Submit">
+                          </form>
+                       </div> -->
+                    </div>
+                 </div>
+              </div>
+            </div>
+            <div class="col-md-12" id="comment-detail">
+              <form action="javascript:void(0)" id="commentAddForm">
+                <input type="hidden" name="new" value="{{object.id}}">
+                <div class="form-group">
+                   <label for="forContent">Content (*):</label>
+                   <textarea placeholder="Enter content" class="form-control" id="forContent" name="content"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" value="Submit">
+              </form>
+            </div>  
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.container -->   
+    <script>
+        var userInfo = localStorage.getItem("user");
+        userInfo = JSON.parse(userInfo);
+        $( document ).ready(function() {
+          var pathname = window.location.pathname
+          console.log(pathname);
+          pathname = pathname.split("/");
+          var id = pathname[3];
+
+          $.ajax({
+            type: 'GET',
+            url : "{% url 'post-list-comment' %}?new_id="+id,
+            success: function (data) {
+              $('.list_comment').html("");
+              var html = "";
+              $.each(data, function(index,value){
+
+              html = "<div class='row'>"
+                      +"<div class='col-md-12' style='margin-bottom: 20px;padding-right: 40px'>"
+                      +"<p>"
+                      +"<h3 class='float-left'><strong>"+value.fullname+"</strong></h3>"
+                      +"</p>"
+                      +"<div class='clearfix'></div>"
+                      +"<p>"+value.content+"</p>"
+                      +"<p>"
+                        +"<a class='float-right btn btn-outline-primary ml-2'> <i class='fa fa-reply'></i> Reply</a>"
+                      +"</p>"
+                    +"</div>"
+                +"</div><hr>";
+                $(".list_comment").append(html);
+              });
+            }
+          }); 
+        });       
+       
+          function likePost(e,id){
+            e.preventDefault();
+            if(userInfo){
+              $.ajax({
+                type: 'PATCH',
+                url : "{%url 'post-like'%}",
+                dataType: 'json',
+                headers: {
+                  "authorization": 'Token ' + localStorage.getItem("token")
+                },           
+                data : {
+                  id_post : id,
+                  userbase_id : userInfo.id,
+                },
+                success: function (data) {
+                  $("#like_post").html(like_new);
+                  $("#like_post").removeClass('text-primary');
+                  $("#like_post").addClass('text-warning');
+                },
+                error: function () {
+                  
+                },
+              }); 
+            }else{
+              alert("Vui long dang nhap de thuc hien chuc nang nay");
+            }
+          };
+        
+
+      $("#commentAddForm").on('submit', function(event) {
+        event.preventDefault();
+        var dataForm = $("#commentAddForm").serializeArray();
+        console.log(dataForm)
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+          var html = "<div class='row'>"
+                  +"<div class='col-md-12' style='margin-bottom: 20px;padding-right: 40px'>"
+                  +"<p>"
+                  +"<h3 class='float-left'><strong>"+dataForm[1].value+"</strong></h3>"
+                  +"</p>"
+                  +"<div class='clearfix'></div>"
+                  +"<p>"+dataForm[2].value+"</p>"
+                  +"<p>"
+                    +"<a class='float-right btn btn-outline-primary ml-2'> <i class='fa fa-reply'></i> Reply</a>"
+                  +"</p>"
+                +"</div>"
+            +"</div><hr>";
+            $(".list_comment").append(html);
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      });        
+
+    </script>
+{% include 'layout2/footer.html' %}
+
+
+
+==========================================
+{% load staticfiles %}
+{% include 'layout2/header.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+      {% include 'layout2/right-bar.html' %}
+        <!-- /.col-lg-3 -->
+        <div class="col-lg-9">
+          <div class="card mt-4" id="post-detail">
+            <!-- <img class="card-img-top img-fluid" src="http://placehold.it/900x400" alt=""> -->
+            <div class="card-body">
+              <h3 class="card-title">{{object.name}}</h3>
+              <h4>{{object.preview_text}}</h4>
+              <p class="card-text">{{object.detail_text}}</p>
+              <a href="" onclick="likePost(event,{{object.id}})" id="like_post" class="text-primary fa fa-thumbs-o-up"></a>
+            </div>
+          </div>
+          <div class="card card-outline-secondary my-4" id="list_post">
+            <div class="card-header">
+              Comment
+            </div>
+            <div class="card-body show-post-cat list_comment">
+            </div>
+            <div class="col-md-12" id="comment-detail">
+              <form action="javascript:void(0)" id="commentParentAddForm">
+                <input type="hidden" name="new" value="{{object.id}}">
+                <div class="form-group">
+                   <label for="forContent">Content (*):</label>
+                   <textarea placeholder="Enter content" class="form-control" id="forContent" name="content"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" value="Submit">
+              </form>
+            </div>  
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.container -->   
+    <script>
+      var main_reley;
+      var new_id = 0;
+      $( "body" ).on( "click", "#reply", function() {
+        var id = $(this).attr("alt");
+        if(id!=main_reley)
+          $("#form_comment_child-"+main_reley).slideUp();
+        main_reley=id;
+        $("#form_comment_child-"+id).slideToggle("slow");
+      });
+
+      var userInfo = localStorage.getItem("user");
+      userInfo = JSON.parse(userInfo);
+      var fullname = userInfo.first_name + " " + userInfo.last_name;
+
+      $( document ).ready(function() {
+        var pathname = window.location.pathname
+        console.log(pathname);
+        pathname = pathname.split("/");
+        new_id = pathname[3];
+
+        $.ajax({
+          type: 'GET',
+          url : "{% url 'post-list-comment' %}?new_id="+new_id,
+          success: function (data) {
+            $('.list_comment').html("");
+            var html;
+            $.each(data, function(index,value){
+              html = htmlForm(value.id, value.fullname, value.content);
+              $(".list_comment").append(html);
+              // showListCommentChilderen(value.id);
+            });
+          }
+        });
+      });       
+      
+      function showListCommentChilderen(id){
+        $.ajax({
+          type: 'GET',
+          url : "{% url 'post-list-comment' %}?parent_id="+id,
+          success: function (data) {
+            var html;
+            $.each(data, function(index,value){
+              html = htmlFormChildren(value.fullname,value.content);
+            $(".list_comment_children-"+id).append(html);
+            });
+          }
+        }); 
+      },
+
+      function likePost(e,id){
+        e.preventDefault();
+        if(userInfo){
+          $.ajax({
+            type: 'POST',
+            url : "{%url 'post-like'%}",
+            dataType: 'json',
+            headers: {
+              "authorization": 'Token ' + localStorage.getItem("token")
+            },           
+            data : {
+              id_post : id,
+            },
+            success: function (data) {
+              $('#like_post').html(data.number_of_like);
+            },
+            error: function () {
+              
+            },
+          }); 
+        }else{
+          alert("Vui long dang nhap de thuc hien chuc nang nay");
+        }
+      };
+        
+      $("#commentParentAddForm").on('click', function(event) {
+        event.preventDefault();
+        var dataForm = $("#commentParentAddForm").serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        dataForm.push({name: 'new', value: new_id});
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html = htmlForm(data.id, data.fullname, data.content);
+            $(".list_comment").append(html);
+          $("#commentParentAddForm").trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      }); 
+
+      $(".list_comment").on('click',".btn.btn-success", function(event) {
+        console.log(main_reley);
+        event.preventDefault();
+        var dataForm = $("#commentChildrenAddForm-"+main_reley).serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        dataForm.push({name: 'parent', value: main_reley});
+        dataForm.push({name: 'new', value: new_id});
+        console.log(dataForm)
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html= htmlFormChildren(data.fullname,data.content);
+            $(".list_comment_children-"+main_reley).append(html);
+          $("#commentChildrenAddForm-"+main_reley).trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      });      
+
+      function htmlForm(a,b,c){
+        var str=`
+                <div class="row">
+                  <div id="cmt-${a}" class="col-md-12" style="margin-bottom: 20px;padding-right: 40px">
+                      <p>
+                      <h3 class="float-left" ><strong>${b}</strong></h3>
+                      </p>
+                      <div class="clearfix"></div>
+                      <p>
+                       ${c}
+                      </p>
+                      <p>
+                        <a id="reply" alt="${a}" class="float-right btn btn-outline-primary ml-2">
+                        <i class="fa fa-reply"></i> Reply</a>
+                      </p>
+                  </div>
+                </div>
+                <div class="card card-inner" style="margin-left: 4rem;display:none;" id="form_comment_child-${a}">
+                   <div class="card-body">
+                      <div class="row">
+                          <div class="list_comment_children-${a}"></div>
+                          <div class="col-md-12" style="">
+                            <hr>
+                            <form action="javascript:void(0)" id="commentChildrenAddForm-${a}">
+                               <div class="form-group">
+                                  <label >Content (*): </label>
+                                  <textarea require class="form-control" name="content"></textarea>
+                               </div>
+                               <input type="submit" class="btn btn-success" id="smtc-${a}" value="Submit">
+                            </form>
+                         </div> 
+                      </div>
+                   </div>
+                </div>
+              </div>
+              `;   
+        return str;     
+      },
+
+      fuction htmlFormChildren(fullname,content){
+        var str=`
+                <div class="col-md-12">
+                  <p><strong>${fullname}</strong></p>
+                  <p>${content}</p>
+                  <hr>
+                </div>
+                `;
+        return str;
+      },
+
+    </script>
+{% include 'layout2/footer.html' %}
+===========================================
+===========================================
+{% load staticfiles %}
+{% include 'layout2/header.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+      {% include 'layout2/right-bar.html' %}
+        <!-- /.col-lg-3 -->
+        <div class="col-lg-9">
+          <div class="card mt-4" id="post-detail">
+            <!-- <img class="card-img-top img-fluid" src="http://placehold.it/900x400" alt=""> -->
+            <div class="card-body">
+              <h3 class="card-title">{{object.name}}</h3>
+              <h4>{{object.preview_text}}</h4>
+              <p class="card-text">{{object.detail_text}}</p>
+              <a href="" onclick="likePost(event,{{object.id}})" id="like_post" class="text-primary fa fa-thumbs-o-up">{{object.like_post.count}}</a>
+            </div>
+          </div>
+          <div class="card card-outline-secondary my-4" id="list_post">
+            <div class="card-header">
+              Comment
+            </div>
+            <div class="card-body show-post-cat list_comment">
+            </div>
+
+            <div class="col-md-12" id="comment-detail">
+              <form action="javascript:void(0)" id="commentParentAddForm">
+                <div class="form-group">
+                   <label for="forContent">Content (*):</label>
+                   <textarea required placeholder="Enter content" class="form-control" id="forContent" name="content"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" value="Submit">
+              </form>
+            </div>  
+
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.container -->   
+    <script>
+      var main_cmt=0;
+      var main_cmt_count=0;
+      var fullname;
+      var userInfo;
+      var main_reley;
+      var new_id = 0;
+
+      $( "body" ).on( "click", "#reply", function() {
+        var id = $(this).attr("alt");
+        if(id!=main_reley)
+          $("#form_comment_child-"+main_reley).slideUp();
+        main_reley=id;
+        $("#form_comment_child-"+id).slideToggle("slow");
+      });
+
+      if(localStorage.getItem("user")){
+        userInfo = localStorage.getItem("user");
+        userInfo = JSON.parse(userInfo);
+        fullname = userInfo.first_name + " " + userInfo.last_name;        
+      }
+
+      $( document ).ready(function() {
+        var pathname = window.location.pathname
+        console.log(pathname);
+        pathname = pathname.split("/");
+        new_id = pathname[3];
+        function loadCommment(from){
+        $.ajax({
+            type: 'GET',
+            url : "{% url 'post-list-comment' %}?new_id="+new_id+"&limit=5&offset="+from,
+            success: function (data) {
+              // $('.list_comment').html("");
+              var html;
+              main_cmt_count  = data.count
+              $.each(data.results, function(index,value){
+                html = htmlForm(value.id, value.fullname, value.content);
+                $(".list_comment").append(html);
+                showListCommentChilderen(value.id);
+              });
+            }
+          });
+      };
+
+      loadCommment(0);
+      $(window).scroll(function() {
+          var startLoad = $("#commentParentAddForm" ).offset().top;
+          if($(window).scrollTop() + $(window).height() >= startLoad && main_cmt< main_cmt_count) {
+            loadCommment(main_cmt+=5);
+          }
+        });
+      });       
+      
+      function showListCommentChilderen(id){
+        $.ajax({
+          type: 'GET',
+          url : "{% url 'post-list-comment-children' %}?parent="+id,
+          success: function (data) {
+            var html;
+            $.each(data.results, function(index,value){
+            html = `
+                      <div class="col-md-12">
+                        <p><strong>${value.fullname}</strong></p>
+                        <p>${value.content}</p>
+                        <hr>
+                      </div>
+                    `;
+            $(".list_comment_children-"+id).append(html);
+            });
+          }
+        }); 
+      };
+
+      function likePost(e,id){
+        e.preventDefault();
+        if(userInfo){
+          $.ajax({
+            type: 'POST',
+            url : "{%url 'post-like'%}",
+            dataType: 'json',
+            headers: {
+              "authorization": 'Token ' + localStorage.getItem("token")
+            },           
+            data : {
+              id_post : id,
+            },
+            success: function (data) {
+              $('#like_post').html(data.number_of_like);
+            },
+            error: function () {
+              
+            },
+          }); 
+        }else{
+          alert("Vui long dang nhap de thuc hien chuc nang nay");
+        }
+      };
+        
+      $("#commentParentAddForm").on('submit', function(event) {
+        event.preventDefault();
+        var dataForm = $("#commentParentAddForm").serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        dataForm.push({name: 'new', value: new_id});
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html = htmlForm(data.id, data.fullname, data.content);
+            $(".list_comment").append(html);
+          $("#commentParentAddForm").trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });           
+      }); 
+
+      $(".list_comment").on('click',".btn.btn-success", function(event) {
+        var dataForm = $("#commentChildrenAddForm-"+main_reley).serializeArray();
+        dataForm.push({name: 'fullname', value: fullname});
+        dataForm.push({name: 'parent', value: main_reley});
+        dataForm.push({name: 'new', value: new_id});
+        console.log(dataForm)
+        $.ajax({
+          type: 'POST',
+          url : "{%url 'post-create-comment'%}",
+          dataType: 'json',
+          headers: {
+            "authorization": 'Token '+ localStorage.getItem("token"),
+          },           
+          data : dataForm,
+          success: function (data) {
+            var html = `
+                      <div class="col-md-12">
+                        <p><strong>${data.fullname}</strong></p>
+                        <p>${data.content}</p>
+                        <hr>
+                      </div>
+            `;
+            $(".list_comment_children-"+main_reley).append(html);
+          $("#commentChildrenAddForm-"+main_reley).trigger("reset");
+          },
+          error: function () {
+            alert("Vui long dang nhap de thuc hien chuc nang nay");
+          },
+        });  
+      });         
+
+      function htmlForm(a,b,c){
+        var str=`
+                <div class="row">
+                  <div id="cmt-${a}" class="col-md-12" style="margin-bottom: 20px;padding-right: 40px">
+                      <p>
+                      <h3 class="float-left" ><strong>${b}</strong></h3>
+                      </p>
+                      <div class="clearfix"></div>
+                      <p>
+                       ${c}
+                      </p>
+                      <p>
+                        <a id="reply" alt="${a}" class="float-right btn btn-outline-primary ml-2">
+                        <i class="fa fa-reply"></i> Reply</a>
+                      </p>
+                  </div>
+                </div>
+                <div class="card card-inner" style="margin-left: 4rem;display:none;" id="form_comment_child-${a}">
+                   <div class="card-body">
+                      <div class="row">
+                          <div class="list_comment_children-${a}"></div>
+                          <div class="col-md-12" style="">
+                            <hr>
+                            <form action="javascript:void(0)" id="commentChildrenAddForm-${a}">
+                               <div class="form-group">
+                                  <label >Content (*): </label>
+                                  <textarea required class="form-control" name="content"></textarea>
+                               </div>
+                               <input type="submit" class="btn btn-success" id="smtc-${a}" value="Submit">
+                            </form>
+                         </div> 
+                      </div>
+                   </div>
+                </div>
+              </div>
+              `;   
+        return str;     
+      }  
+
+    </script>
+{% include 'layout2/footer.html' %}

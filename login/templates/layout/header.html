@@ -1,0 +1,41 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="utf-8">
+      <title>Students</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="softdevelopinc">
+      <meta name="author" content="softdevelopinc@gmail.com">
+      <!-- Le styles -->
+      <link href="{%static 'admin/css/bootstrap.css'%}" rel="stylesheet">
+      <link href="{%static 'admin/css/bootstrap-theme.min.css'%}" rel="stylesheet">
+      <link href="{%static 'admin/css/font-awesome.css'%}" rel="stylesheet">
+      <link href="{%static 'admin/css/main.css'%}" rel="stylesheet">
+      <script src="{%static 'admin/js/jquery.min.js'%}"></script>
+      <script src="{%static 'admin/js/bootstrap.min.js'%}"></script>
+   </head>
+   <body role="document" cz-shortcut-listen="true">
+      <!-- Fixed navbar -->
+      <nav class="navbar navbar-inverse navbar-fixed-top">
+         <div class="container">
+            <div class="navbar-header">
+               <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+               <span class="sr-only">Toggle navigation</span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               <span class="icon-bar"></span>
+               </button>
+               <a class="navbar-brand" href="#">Management students system</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+               <ul class="nav navbar-nav navbar-right">
+                  <li class="active"><a href="{%url 'user-page'%}">Home</a></li>
+                  <li><a href="#">Categories</a></li>
+                  <li><a href="{%url 'logout'%}">Logout</a></li>
+                  <li><a href="#">Hello : {{request.session.userInfo}}</a></li>
+               </ul>
+            </div>
+            <!--/.nav-collapse -->
+         </div>
+      </nav>

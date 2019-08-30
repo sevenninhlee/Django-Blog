@@ -1,0 +1,41 @@
+{% load staticfiles %}
+{% include 'layout2/header.html' %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <!-- Page Content -->
+    <div class="container">
+      <div class="row">
+      {% include 'layout2/right-bar.html' %}
+        <!-- /.col-lg-3 -->
+        <div class="col-lg-9">
+          <div class="card mt-4" id="post-detail">
+            <!-- <img class="card-img-top img-fluid" src="http://placehold.it/900x400" alt=""> -->
+            <div class="card-body">
+              <h3 class="card-title">{{object.name}}</h3>
+              <h4>{{object.preview_text}}</h4>
+              <p class="card-text">{{object.detail_text}}</p>
+              <a href="" onclick="likePost(event,{{object.id}})" id="like_post" class="text-primary fa fa-thumbs-o-up">{{object.like_post.count}}</a>
+            </div>
+          </div>
+          <div class="card card-outline-secondary my-4" id="list_post">
+            <div class="card-header">
+              Comment
+            </div>
+            <div class="card-body show-post-cat list_comment">
+            </div>
+
+            <div class="col-md-12" id="comment-detail">
+              <form action="javascript:void(0)" id="commentParentAddForm">
+                <div class="form-group">
+                   <label for="forContent">Content (*):</label>
+                   <textarea required placeholder="Enter content" class="form-control" id="forContent" name="content"></textarea>
+                </div>
+                <input type="submit" class="btn btn-success" value="Submit">
+              </form>
+            </div>  
+            
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="{%static 'vendor/custom/ajax_detail.js'%}"></script>
+{% include 'layout2/footer.html' %}

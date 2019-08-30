@@ -1,0 +1,130 @@
+{% load staticfiles %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Shop Item - Start Bootstrap Template</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="{%static 'vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+
+    <!-- Custom styles for this template -->
+    <link href="{%static 'css/shop-item.css' %}" rel="stylesheet">
+    <script src="{%static 'vendor/jquery/jquery.min.js' %}"></script>
+    <link rel="stylesheet" href="https://jqueryvalidation.org/files/demo/site-demos.css">
+    <!-- jQuery UI !-->
+    <link rel="stylesheet" href="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/themes/smoothness/jquery-ui.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.11.4/jquery-ui.min.js"></script>
+  </head>
+
+  <body>
+
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="#">Post New</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarResponsive" aria-controls="navbarResponsive" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarResponsive">
+          <ul class="navbar-nav ml-auto">
+            <li class="nav-item active">
+              <a class="nav-link" href="{%url 'posts-list'%}">Home</a>
+            </li>
+            <li class="nav-item">
+              <p id="helloUser" class="nav-link d-none" style="margin: 0px;"></p> 
+            </li>
+            <li class="nav-item">
+              <a id="logout" class="nav-link d-none" href="#">Logout</a>              
+            </li>
+            <li class="nav-item">
+              <a id="login" onclick="getForm()" class="nav-link" href="javascript:void(0)" data-toggle="modal" data-target="#myModal">Login</a>
+            </li>              
+          </ul>
+          <form action="javascript:void(0);" class="ui-widget form-inline mt-2 mt-md-0">
+            <input onkeyup="seachPostName()" style="margin:0px;" class="form-control mr-sm-2" type="text" placeholder="Search title ..." aria-label="Search" id="searchName">
+          </form>
+        </div>
+      </div>
+    </nav>
+  <!-- Modal -->
+      <!-- Modal content-->
+<div id="myModal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+
+    <!-- Modal content-->
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Login</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+        <form action="javascript:void(0);" method="post" id="loginForm">
+          <div class="modal-body">
+          <div class="alert alert-danger d-none" id="erLog">
+            <strong>Danger!</strong> Email or password wrong !
+          </div>
+                          
+          <div class="form-group">
+                <label for="recipient-name" class="col-form-label">Email (*):</label>
+                <input name="email" type="email" class="form-control" required >
+              </div>
+              <div class="form-group">
+                <label for="message-text" class="col-form-label">Password (*):</label>
+                <input name="password" type="password" class="form-control" required >
+              </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-default" id="closeFormLogin" data-dismiss="modal">Close</button>
+            
+            <div id="fb-root">
+            </div>
+            <a href="" class="btn btn-default">Register</a>
+            <input type="submit" class="btn btn-default" value="Submit" />
+          </div>
+      </form>
+    </div>
+    <div class="fb-login-button" data-max-rows="1" data-size="small" data-button-type="continue_with" data-show-faces="false" data-auto-logout-link="false" data-use-continue-as="false"></div>
+</div>
+</div>
+<script src="{%static 'vendor/custom/ajax_header.js'%}"></script>
+<script>
+  function seachPostName(){
+;
+    var search = $("#searchName").val().trim();
+    $.ajax({
+      type: 'GET',
+      url : "{% url 'post-search' %}?search="+search,
+      success: function (data) {
+        $('.show-post-cat').html("");
+        $('#comment-detail').html("");
+        $('#post-detail').html("");
+        var html = "";
+        if(data.results.length>0){
+        $("#kq-serch").html("Result: ("+data.count+") post")
+        $.each(data.results, function(index,value){
+          console.log(data)
+          html = "<p><a href='{%url 'posts-list'%}detail/"+value.id+"'>" + hightline(search,value.name) + "</a></p>"
+          $('.show-post-cat').append(html);
+        });  
+      }else{
+        html = `<p>Khong tim thay du lieu</p>`;
+        $("#kq-serch").html("Result: ("+0+") post")
+        $('.show-post-cat').append(html);
+      }
+      }
+    });        
+  }
+  function hightline(search,str){
+    search = search.split(/\s+/);
+    search.forEach(function(a){ 
+      str=str.split(RegExp("\\b"+a+"\\b","gi")).join("<span style='color:red;'>"+a+"</span>");  
+    });
+    return str;
+  }
+</script>

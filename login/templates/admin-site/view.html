@@ -1,0 +1,82 @@
+{% load staticfiles %}
+{% include 'layout/header.html' %}
+      <div class="container theme-showcase" role="main">
+         <div class="row row-offcanvas row-offcanvas-right">
+            <div class="col-xs-12 col-sm-9">
+               <div class="table-responsive">
+                  <table class="table table-bordered table-striped">
+                     <colgroup>
+                        <col class="col-xs-1">
+                        <col class="col-xs-7">
+                     </colgroup>
+                     <thead>
+                        <tr>
+                           <th>Field</th>
+                           <th>Value</th>
+                        </tr>
+                     </thead>
+                     <tbody>
+                        <tr>
+                           <th scope="row">Id</th>
+                           <td id="id">
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Fullname</th>
+                           <td id="fullname">
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Emaill</th>
+                           <td id="email">
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Phone</th>
+                           <td id="phone">
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Role</th>
+                           <td id="role">
+                           </td>
+                        </tr>
+                        <tr>
+                           <th scope="row">Username</th>
+                           <td id=username>
+                           </td>
+                        </tr>
+                     </tbody>
+                  </table>
+                <div style="margin-top: 20px">
+                  <button type="button" class="btn btn-primary">Edit</button>
+               </div>                  
+               </div>  
+            </div>
+
+         {% include 'layout/right_bar.html' %}
+         </div>
+         <hr>
+         {% include 'layout/footer.html' %}
+      </div>
+   </body>
+   <script>
+      var pathname = window.location.pathname
+      console.log(pathname);
+      pathname = pathname.split("/");
+      var id = pathname[3];
+      role =['','Admin','Leader','User'];
+      $.ajax({
+         type: 'GET',
+         url : "{% url 'user-list' %}"+id,
+         success: function (data) {
+           $('#id').html(data.id);
+           $('#fullname').html(data.first_name+" "+data.last_name);
+           $('#email').html(data.email);
+           $('#phone').html(data.phone);
+           $('#role').html(role[data.role]);
+           $('#username').html(data.username);
+        }
+      });
+   </script>
+</html>
